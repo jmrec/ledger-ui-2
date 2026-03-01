@@ -12,7 +12,7 @@ services:
 
 networks:
   ledger-net:
-    driver: bridge
+    external: true
 
 volumes:
   vscode_extensions:

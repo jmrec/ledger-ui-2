@@ -21,5 +21,6 @@ WORKDIR $APP_HOME
 USER $USERNAME
 
 RUN npm install -g pnpm
+RUN pnpm add -g @quasar/cli
 
 EXPOSE 5173
