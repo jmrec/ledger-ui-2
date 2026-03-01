@@ -1,5 +1,5 @@
 services:
-  ledger-ui:
+  ledger-ui-2:
     container_name: ledger-ui
     build:
       context: .
