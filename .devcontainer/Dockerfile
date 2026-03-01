@@ -16,11 +16,10 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p $APP_HOME /home/$USERNAME/.vscode-server/extensions /home/$USERNAME/.vscode-server/data \
     && chown -R $USERNAME:$USERNAME $APP_HOME /home/$USERNAME
 
-WORKDIR $APP_HOME
-
-USER $USERNAME
-
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm add -g @quasar/cli
+
+WORKDIR $APP_HOME
+USER $USERNAME
 
 EXPOSE 5173
