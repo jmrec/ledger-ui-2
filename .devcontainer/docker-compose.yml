@@ -1,6 +1,6 @@
 services:
   ledger-ui-2:
-    container_name: ledger-ui
+    container_name: ledger-ui-2
     build:
       context: .
       dockerfile: Dockerfile
