@@ -1,0 +1,44 @@
+{
+    "name": "Ledger Vue UI",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "ledger-ui",
+    "workspaceFolder": "/workspace",
+    "remoteUser": "node",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    "mounts": [
+        "source=vscode_extensions,target=/home/node/.vscode-server/extensions,type=volume",
+        "source=vscode_data,target=/home/node/.vscode-server/data,type=volume",
+        "source=${localEnv:HOME}/.ssh/id_ed25519_signing.pub,target=/home/node/.ssh/id_ed25519_signing.pub,type=bind,consistency=cached"
+    ],
+    "forwardPorts": [5173],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vue.volar",
+                "vue.vscode-typescript-vue-plugin",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "bradlc.vscode-tailwindcss",
+                "mhutchie.git-graph",
+                "ms-vscode.vscode-typescript-next"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "editor.codeActionsOnSave": {
+                    "source.fixAll.eslint": "explicit"
+                }
+            }
+        }
+    },
+    "portsAttributes": {
+        "5173": {
+            "label": "Vite Dev Server",
+            "onAutoForward": "notify"
+        }
+    },
+    "postCreateCommand": "sudo chown -R node:node /home/node && git config --global gpg.format ssh && git config --global user.signingkey /home/node/.ssh/id_ed25519_signing.pub && git config --global commit.gpgsign true"
+}

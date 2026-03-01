@@ -1,0 +1,21 @@
+services:
+  ledger-ui:
+    container_name: ledger-ui
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    networks:
+      - ledger-net
+
+networks:
+  ledger-net:
+    driver: bridge
+
+volumes:
+  vscode_extensions:
+    external: true
+  vscode_data:
+    external: true
