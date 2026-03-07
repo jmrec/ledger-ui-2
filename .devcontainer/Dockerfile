@@ -16,13 +16,15 @@ RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && mkdir -p $APP_HOME /home/$USERNAME/.vscode-server/extensions \
     && chown -R $USERNAME:$USERNAME $APP_HOME /home/$USERNAME
 
-ENV PNPM_HOME="/usr/local/share/pnpm"
+ENV PNPM_HOME="/home/${USERNAME}/.local/share/pnpm"
 ENV PATH="${PNPM_HOME}:${PATH}"
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
-RUN pnpm add -g @quasar/cli
 
-WORKDIR $APP_HOME
 USER $USERNAME
 
-EXPOSE 5173
+RUN pnpm add -g @quasar/cli @quasar/icongenie
+
+WORKDIR $APP_HOME
+
+EXPOSE 5173 9000
