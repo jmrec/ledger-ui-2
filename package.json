@@ -18,10 +18,11 @@
     "tree": "tree -I 'node_modules|dist|.quasar|.git|.vscode|.pnpm-store' --dirsfirst"
   },
   "dependencies": {
+    "@buf/jmrecondo_personal-server.bufbuild_es": "2.12.0-20260417153104-c66a7416c9cc.1",
+    "@bufbuild/protobuf": "^2.12.0",
+    "@connectrpc/connect-web": "^2.1.1",
     "@quasar/extras": "^1.16.4",
-    "axios": "^1.2.1",
     "echarts": "^6.0.0",
-    "openapi-fetch": "^0.17.0",
     "pinia": "^3.0.1",
     "pinia-plugin-persistedstate": "^4.7.1",
     "quasar": "^2.16.0",
@@ -40,7 +41,6 @@
     "eslint": "^9.14.0",
     "eslint-plugin-vue": "^10.4.0",
     "globals": "^16.4.0",
-    "openapi-typescript": "^7.13.0",
     "prettier": "^3.3.3",
     "typescript": "^5.9.2",
     "vite-plugin-checker": "^0.11.0",

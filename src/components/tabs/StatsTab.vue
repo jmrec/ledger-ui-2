@@ -18,11 +18,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { api } from 'boot/api'
-import type { components } from 'src/api/schema'
 
-type BillingStatus = components['schemas']['BillingStatusResponse']
-type TrendDataPoint = components['schemas']['TrendDataPoint']
+import { BillingService } from '@buf/jmrecondo_personal-server.bufbuild_es/ledger/v1/billing_pb';
+import { transport } from 'boot/connectrpc';
+
+const client = new BillingService(transport);
+const [statusRes, trendRes] = await Promise.all([
+  client.getBillingStatus({}),
+  client.getBalanceTrend({})
+]);
 
 const trendData = ref<TrendDataPoint[]>([])
 const status = ref<BillingStatus | null>(null)
@@ -75,20 +79,20 @@ const chartOption = computed(() => ({
     }]
 }))
 
-onMounted(async () => {
-    try {
-        const [statusRes, trendRes] = await Promise.all([
-            api.GET('/api/v1/billing/status'),
-            api.GET('/api/v1/billing/trend')
-        ])
-        if (statusRes.data) status.value = statusRes.data
-        if (trendRes.data) trendData.value = trendRes.data
+// onMounted(async () => {
+//     try {
+//         const [statusRes, trendRes] = await Promise.all([
+//             api.GET('/api/v1/billing/status'),
+//             api.GET('/api/v1/billing/trend')
+//         ])
+//         if (statusRes.data) status.value = statusRes.data
+//         if (trendRes.data) trendData.value = trendRes.data
 
-        if (statusRes.error || trendRes.error) {
-            console.error('API Error:', statusRes.error || trendRes.error)
-        }
-    } finally {
-        loading.value = false
-    }
-})
+//         if (statusRes.error || trendRes.error) {
+//             console.error('API Error:', statusRes.error || trendRes.error)
+//         }
+//     } finally {
+//         loading.value = false
+//     }
+// })
 </script>

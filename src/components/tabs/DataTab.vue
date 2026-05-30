@@ -6,7 +6,7 @@
                 <q-table :rows="payments" :columns="paymentColumns" row-key="id" flat bordered :loading="loading">
                     <template v-slot:body-cell-amount="props">
                         <q-td :props="props" class="text-right text-weight-bold">
-                            ₱{{ props.value.toFixed(2) }}
+                            ₱{{ moneyToNumber(props.row.amount).toFixed(2) }}
                         </q-td>
                     </template>
                 </q-table>
@@ -17,7 +17,7 @@
                 <q-table :rows="servicePrices" :columns="priceColumns" row-key="id" flat bordered :loading="loading">
                     <template v-slot:body-cell-price="props">
                         <q-td :props="props" class="text-right text-weight-bold">
-                            ₱{{ props.value.toFixed(2) }}
+                            ₱{{ moneyToNumber(props.row.price).toFixed(2) }}
                         </q-td>
                     </template>
                 </q-table>
@@ -28,18 +28,20 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { api } from 'boot/api'
-import type { components } from 'src/api/schema'
 import type { QTableColumn } from 'quasar'
 
-type Payment = components['schemas']['PaymentResponse']
+import { BillingService, type PaymentResponse } from '@buf/jmrecondo_personal-server.bufbuild_es/ledger/v1/billing_pb';
+import { transport } from 'boot/connectrpc';
+
 interface PriceRow {
     price: number;
     date: string;
     serviceName: string;
 }
 
-const payments = ref<Payment[]>([])
+const client = new BillingService(transport);
+
+const payments = ref<PaymentResponse[]>([])
 const servicePrices = ref<PriceRow[]>([])
 const loading = ref(true)
 
@@ -59,35 +61,34 @@ const priceColumns: QTableColumn[] = [
 onMounted(async () => {
     try {
         const [historyRes, priceRes] = await Promise.all([
-            api.GET('/api/v1/billing/history'),
-            api.GET('/api/v1/billing/price-history')
+            client.getPaymentHistory({}),
+            client.getPriceHistory({})
         ])
 
-        if (historyRes.data) payments.value = historyRes.data
-        if (priceRes.data) {
-            const transformed: PriceRow[] = []
+        payments.value = historyRes.payments
 
-            for (const [serviceName, points] of Object.entries(priceRes.data)) {
-                points.forEach(point => {
-                    transformed.push({
-                        price: point.price ?? 0,
-                        date: point.date ?? '',
-                        serviceName: serviceName
-                    })
+        const transformed: PriceRow[] = []
+        for (const [serviceName, history] of Object.entries(priceRes.prices)) {
+            for (const point of history.points) {
+                transformed.push({
+                    price: moneyToNumber(point.price),
+                    date: point.date,
+                    serviceName
                 })
             }
-            servicePrices.value = transformed.sort((a, b) =>
-                new Date(b.date).getTime() - new Date(a.date).getTime()
-            )
         }
-
-        if (historyRes.error || priceRes.error) {
-            console.error('API Error:', historyRes.error || priceRes.error)
-        }
+        servicePrices.value = transformed.sort((a, b) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
     } catch (e) {
         console.error('Network failure:', e)
     } finally {
         loading.value = false
     }
 })
+
+function moneyToNumber(m?: { units?: bigint; nanos?: number }): number {
+    if (!m) return 0
+    return Number(m.units ?? 0n) + (m.nanos ?? 0) / 1e9
+}
 </script>
