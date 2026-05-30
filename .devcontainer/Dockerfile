@@ -17,7 +17,7 @@ RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chown -R $USERNAME:$USERNAME $APP_HOME /home/$USERNAME
 
 ENV PNPM_HOME="/home/${USERNAME}/.local/share/pnpm"
-ENV PATH="${PNPM_HOME}:${PATH}"
+ENV PATH="${PNPM_HOME}/bin:${PNPM_HOME}:${PATH}"
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
