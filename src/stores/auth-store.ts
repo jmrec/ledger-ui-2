@@ -1,34 +1,52 @@
 import { defineStore } from 'pinia'
+import { useAuthClient } from 'src/composables/useAuthClient'
 import { ref } from 'vue'
+import { ConnectError, Code } from '@connectrpc/connect'
 import { useRouter } from 'vue-router'
 
 
 export const useAuthStore = defineStore('auth', () => {
     const router = useRouter()
-
-    // const token = ref<string | null>(localStorage.getItem('token'))
-    // const member = ref<string | null>(localStorage.getItem('member'))
-    const token = ref<string | null>(null)
     const member = ref<string | null>(null)
-    const loading = ref(false)
+    const isAuthenticated = ref(false)
+    const isChecking = ref(false)
+
+    const authClient = useAuthClient()
+
+    async function checkSession() {
+        isChecking.value = true
+        try {
+            const resp = await authClient.whoAmI({})
+            member.value = resp.username
+            isAuthenticated.value = true
+        } catch (e: unknown) {
+            console.error('Session check failed:', e)
+            if (e instanceof ConnectError && e.code === Code.Unauthenticated) {
+                isAuthenticated.value = false
+                member.value = null
+            }
+        } finally {
+            isChecking.value = false
+        }
+    }
 
     function login() {
-        window.location.href = 'https://api.jmrecondo.com/auth/login?redirect_to=https://spotify.jmrecondo.com';
+        window.location.href = `https://api.jmrecondo.com/auth/login?redirect_to=${window.location.origin}`;
     }
 
     async function logout() {
-        token.value = null
+        await authClient.logout({})
+        isAuthenticated.value = false
         member.value = null
-        // localStorage.removeItem('token')
-        // localStorage.removeItem('member')
-        await router.push('/auth/login')
+        await router.push('/')
     }
 
     return {
-        token,
         member,
+        isAuthenticated,
+        isChecking,
+        checkSession,
         login,
-        loading,
         logout
     }
 }, { persist: true })

@@ -1,12 +1,11 @@
 <template>
     <q-page class="q-pa-md">
         <div class="q-mb-xl" v-if="status">
-            <div class="text-overline text-weight-bold"
-                :class="status.balance! >= 0 ? 'text-positive' : 'text-negative'">
-                {{ status.balance! >= 0 ? 'Balance Credit' : 'Balance Due' }}
+            <div class="text-overline text-weight-bold" :class="balance >= 0 ? 'text-positive' : 'text-negative'">
+                {{ balance >= 0 ? 'Balance Credit' : 'Balance Due' }}
             </div>
-            <div class="text-h3 text-weight-medium">₱{{ Math.abs(status.balance!).toFixed(2) }}</div>
-            <div class="text-caption text-grey-7">Total Payment Made: ₱{{ status.totalPaid?.toFixed(2) }}</div>
+            <div class="text-h3 text-weight-medium">₱{{ Math.abs(balance).toFixed(2) }}</div>
+            <div class="text-caption text-grey-7">Total Payment Made: ₱{{ totalPaid.toFixed(2) }}</div>
         </div>
 
         <q-card flat bordered class="rounded-borders overflow-hidden" style="height: 350px">
@@ -18,19 +17,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useBillingClient, moneyToNumber } from 'src/composables/useBillingClient'
+import type { GetBillingStatusResponse, TrendDataPoint } from '@buf/jmrecondo_personal-server.bufbuild_es/ledger/v1/billing_pb'
 
-import { BillingService } from '@buf/jmrecondo_personal-server.bufbuild_es/ledger/v1/billing_pb';
-import { transport } from 'boot/connectrpc';
-
-const client = new BillingService(transport);
-const [statusRes, trendRes] = await Promise.all([
-  client.getBillingStatus({}),
-  client.getBalanceTrend({})
-]);
+const client = useBillingClient()
 
 const trendData = ref<TrendDataPoint[]>([])
-const status = ref<BillingStatus | null>(null)
+const status = ref<GetBillingStatusResponse | null>(null)
 const loading = ref(true)
+
+const balance = computed(() => moneyToNumber(status.value?.balance) || 0)
+const totalPaid = computed(() => moneyToNumber(status.value?.totalPaid) || 0)
 
 const chartOption = computed(() => ({
     tooltip: {
@@ -38,6 +35,7 @@ const chartOption = computed(() => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formatter: (params: any) => {
             const val = params[0].value
+            if (val == null) return ''
             return `${params[0].name}<br/><b>₱${val.toFixed(2)}</b>`
         }
     },
@@ -57,7 +55,7 @@ const chartOption = computed(() => ({
         splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
     },
     series: [{
-        data: trendData.value.map(d => d.balance),
+        data: trendData.value.map(d => moneyToNumber(d.balance)),
         type: 'line',
         smooth: true,
         symbol: 'circle',
@@ -79,20 +77,18 @@ const chartOption = computed(() => ({
     }]
 }))
 
-// onMounted(async () => {
-//     try {
-//         const [statusRes, trendRes] = await Promise.all([
-//             api.GET('/api/v1/billing/status'),
-//             api.GET('/api/v1/billing/trend')
-//         ])
-//         if (statusRes.data) status.value = statusRes.data
-//         if (trendRes.data) trendData.value = trendRes.data
-
-//         if (statusRes.error || trendRes.error) {
-//             console.error('API Error:', statusRes.error || trendRes.error)
-//         }
-//     } finally {
-//         loading.value = false
-//     }
-// })
+onMounted(async () => {
+    try {
+        const [statusRes, trendRes] = await Promise.all([
+            client.getBillingStatus({}),
+            client.getBalanceTrend({})
+        ])
+        status.value = statusRes
+        trendData.value = trendRes.trend ?? []
+    } catch (e: unknown) {
+        console.error('API Error:', e)
+    } finally {
+        loading.value = false
+    }
+})
 </script>

@@ -18,7 +18,7 @@
     "tree": "tree -I 'node_modules|dist|.quasar|.git|.vscode|.pnpm-store' --dirsfirst"
   },
   "dependencies": {
-    "@buf/jmrecondo_personal-server.bufbuild_es": "2.12.0-20260417153104-c66a7416c9cc.1",
+    "@buf/jmrecondo_personal-server.bufbuild_es": "2.12.0-20260531065854-c584ae13572a.1",
     "@bufbuild/protobuf": "^2.12.0",
     "@connectrpc/connect-web": "^2.1.1",
     "@quasar/extras": "^1.16.4",
@@ -31,6 +31,7 @@
     "vue-router": "^5.0.0"
   },
   "devDependencies": {
+    "@bufbuild/buf": "^1.70.0",
     "@eslint/js": "^9.14.0",
     "@quasar/app-vite": "^2.1.0",
     "@quasar/cli": "^2.5.0",

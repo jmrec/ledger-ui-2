@@ -88,7 +88,7 @@ export default defineConfig((/* ctx */) => {
       // https: true,
       open: true, // opens browser window automatically
       allowedHosts: [
-        'spotify-ui.jmrecondo.com'
+        'spotify.jmrecondo.com'
       ]
     },
 

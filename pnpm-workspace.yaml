@@ -1,2 +1,6 @@
+allowBuilds:
+  '@bufbuild/buf': set this to true or false
+  '@parcel/watcher': set this to true or false
+  esbuild: set this to true or false
 # https://pnpm.io/settings
 shamefullyHoist: true

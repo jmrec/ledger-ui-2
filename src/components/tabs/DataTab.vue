@@ -17,7 +17,7 @@
                 <q-table :rows="servicePrices" :columns="priceColumns" row-key="id" flat bordered :loading="loading">
                     <template v-slot:body-cell-price="props">
                         <q-td :props="props" class="text-right text-weight-bold">
-                            ₱{{ moneyToNumber(props.row.price).toFixed(2) }}
+                            ₱{{ props.row.price.toFixed(2) }}
                         </q-td>
                     </template>
                 </q-table>
@@ -29,17 +29,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { QTableColumn } from 'quasar'
+import { useBillingClient, moneyToNumber } from 'src/composables/useBillingClient'
+import type { PaymentResponse } from '@buf/jmrecondo_personal-server.bufbuild_es/ledger/v1/billing_pb'
 
-import { BillingService, type PaymentResponse } from '@buf/jmrecondo_personal-server.bufbuild_es/ledger/v1/billing_pb';
-import { transport } from 'boot/connectrpc';
+const client = useBillingClient()
 
 interface PriceRow {
     price: number;
     date: string;
     serviceName: string;
 }
-
-const client = new BillingService(transport);
 
 const payments = ref<PaymentResponse[]>([])
 const servicePrices = ref<PriceRow[]>([])
@@ -80,15 +79,10 @@ onMounted(async () => {
         servicePrices.value = transformed.sort((a, b) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
         )
-    } catch (e) {
+    } catch (e: unknown) {
         console.error('Network failure:', e)
     } finally {
         loading.value = false
     }
 })
-
-function moneyToNumber(m?: { units?: bigint; nanos?: number }): number {
-    if (!m) return 0
-    return Number(m.units ?? 0n) + (m.nanos ?? 0) / 1e9
-}
 </script>
